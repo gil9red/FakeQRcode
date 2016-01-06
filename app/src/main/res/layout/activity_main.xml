@@ -9,23 +9,12 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.ipetrash.helloqrcode.MainActivity">
 
-    <SurfaceView
-        android:layout_width="wrap_content"
-        android:layout_height="300dp"
-        android:id="@+id/surfaceView"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:visibility="visible"
-        android:layout_above="@+id/qrcodeText" />
-
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:id="@+id/qrcodeText"
+        android:autoLink="all"
         android:layout_above="@+id/buttonQuit"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
@@ -42,17 +31,14 @@
         android:layout_column="3"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_toRightOf="@+id/switchSearchQRcode"
-        android:layout_toEndOf="@+id/switchSearchQRcode" />
+        android:layout_alignParentEnd="true" />
 
-    <Switch
+    <TextureView
         android:layout_width="wrap_content"
-        android:layout_height="60dp"
-        android:text="Search QR code"
-        android:id="@+id/switchSearchQRcode"
-        android:onClick="searchQRcode"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true" />
+        android:layout_height="wrap_content"
+        android:id="@+id/textureView"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_above="@+id/qrcodeText" />
 
 </RelativeLayout>

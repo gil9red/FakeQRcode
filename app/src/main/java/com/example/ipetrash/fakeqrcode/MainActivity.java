@@ -2,19 +2,14 @@ package com.example.ipetrash.fakeqrcode;
 
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.PixelFormat;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
-import android.os.Environment;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.Switch;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.zxing.BinaryBitmap;
@@ -23,220 +18,116 @@ import com.google.zxing.NotFoundException;
 import com.google.zxing.RGBLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.io.IOException;
 
-public class MainActivity extends ActionBarActivity {
-    private Camera camera;
-    private SurfaceView preview;
-    private SurfaceHolder surfaceHolder;
+
+public class MainActivity extends ActionBarActivity implements TextureView.SurfaceTextureListener {
     private TextView qrcodeText;
-    private Switch switchSearchQRcode;
+    private TextureView mTextureView;
+    private Camera mCamera;
 
-    private final String TAG = "helloqrcode";
+    private boolean mFoundQRcode = false;
 
-    Timer timer = new Timer();
-    SearchQRCodeTimeTask searchQRCodeTimeTask = new SearchQRCodeTimeTask();
-
-    // Задача для таймера
-    private class SearchQRCodeTimeTask extends TimerTask {
-
-//
-//        @Override
-//        public void run() {
-//            // Your logic here...
-//
-//            // When you need to modify a UI element, do so on the UI thread.
-//            // 'getActivity()' is required as this is being ran from a Fragment.
-//            getActivity().runOnUiThread(new Runnable() {
-//                @Override
-//                public void run() {
-//                    // This code will always run on the UI thread, therefore is safe to modify UI elements.
-//                    myTextBox.setText("my text");
-//                }
-//            });
-//        }
-//
-
-        @Override
-        public void run() {
-            Log.d(TAG, "Search QR Code");
-
-//            Log.d(TAG, "preview="+preview);
-
-            // When you need to modify a UI element, do so on the UI thread.
-            // 'getActivity()' is required as this is being ran from a Fragment.
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    // This code will always run on the UI thread, therefore is safe to modify UI elements.
-
-                    preview.setDrawingCacheEnabled(true);
-                    Bitmap photo = Bitmap.createBitmap(preview.getDrawingCache());
-
-                    // be sure to call the createBitmap that returns a mutable Bitmap
-//                    Bitmap photo = Bitmap.createBitmap(preview.getWidth(), preview.getHeight(), Bitmap.Config.ARGB_8888);
-                    Canvas canvas = new Canvas(photo);
-                    preview.draw(canvas);
-//                    preview.draw
-
-                    preview.setDrawingCacheEnabled(false);
-
-                    try {
-                        java.io.File file = new java.io.File(Environment
-                                .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                                + "/image.jpg");
-
-//                        File sdCard = Environment.getDownloadCacheDirectory();
-//                        File file = new File(sdCard, "image.jpg");
-                        Log.e(TAG, "save = " + photo.compress(Bitmap.CompressFormat.JPEG, 95, new FileOutputStream(file)));
-                    } catch (FileNotFoundException e) {
-                        Log.e(TAG, e.toString(), e);
-                    }
-
-//                    preview.setDrawingCacheEnabled(true);
-//                    Bitmap photo = preview.getDrawingCache();
-
-//                    Log.d(TAG, "canvas=" + canvas);
-//                    Log.d(TAG, "photo=" + photo);
-//                    Log.d(TAG, "photo.w=" + photo.getWidth() + " photo.h=" + photo.getHeight());
-//
-                    try
-                    {
-                        String text = decode(photo);
-
-                        qrcodeText.setText(text);
-                        qrcodeText.setTextColor(Color.parseColor("#FFFFFF"));
-
-                        // Отключаем кнопку поиска
-                        switchSearchQRcode.setChecked(false);
-//                        switchSearchQRcode.callOnClick();
-
-                        Log.d(TAG, "QR Code: " + text);
-                    }
-                    catch (NotFoundException e) {
-                        String notFound = "QR code not found.";
-
-                        // Пишем что не нашли, и делаем цвет текста красным
-                        qrcodeText.setText(notFound);
-                        qrcodeText.setTextColor(Color.parseColor("#FF0000"));
-                        Log.d(TAG, notFound);
-                    }
-
-                    Log.d(TAG, "5");
-                }
-            });
-
-
-
-//            Log.d(TAG, "1");
-//
-//            try
-//            {
-//                String text = decode(photo);
-//
-//                Log.d(TAG, "2");
-//
-//                qrcodeText.setText(text);
-//                qrcodeText.setTextColor(Color.parseColor("#FFFFFF"));
-//
-//                Log.d(TAG, "3");
-//
-//                // Отключаем кнопку поиска
-////                switchSearchQRcode.setChecked(false);
-//                switchSearchQRcode.callOnClick();
-//
-//                Log.d(TAG, "4");
-//
-////                searchQRcode
-//
-//                Log.d(TAG, "QR Code: " + text);
-//            }
-//            catch (NotFoundException e) {
-//                String notFound = "QR code not found.";
-//
-//                Log.d(TAG, "1.1");
-//                Log.d(TAG, "qrcodeText="+qrcodeText);
-//
-//                // Пишем что не нашли, и делаем цвет текста красным
-//                qrcodeText.setText(notFound);
-//                Log.d(TAG, "Color.parseColor");
-//                qrcodeText.setTextColor(Color.parseColor("#FF0000"));
-//                Log.d(TAG, "1.2");
-//                Log.d(TAG, notFound);
-//            }
-//
-//            Log.d(TAG, "5");
-        }
-    }
+    private final String TAG = "fakeqrcode";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mTextureView = (TextureView) findViewById(R.id.textureView);
+        mTextureView.setSurfaceTextureListener(this);
+
         qrcodeText = (TextView) findViewById(R.id.qrcodeText);
 
-        preview = (SurfaceView) findViewById(R.id.surfaceView);
-        surfaceHolder = preview.getHolder();
-        switchSearchQRcode = (Switch) findViewById(R.id.switchSearchQRcode);
-
-        preview.setZOrderOnTop(true);    // necessary
-        surfaceHolder.setFormat(PixelFormat.TRANSPARENT);
-    }
-
-    public void searchQRcode(View view) {
-        try
-        {
-            if (switchSearchQRcode.isChecked()) {
-                camera = Camera.open();
-                camera.setPreviewDisplay(surfaceHolder);
-
-                //ImageView view = (SurfaceView) findViewById(R.id.imageView);
-                //view.hol
-
-                if (this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
-                    camera.setDisplayOrientation(90);
-                } else {
-                    camera.setDisplayOrientation(0);
+        Button buttonQuit = (Button) findViewById(R.id.buttonQuit);
+        buttonQuit.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        finish();
+                    }
                 }
+        );
+    }
 
-                // Чтобы включить отображение preview, вызываем
-                camera.startPreview();
+    public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+        mCamera = Camera.open();
 
-                // Вызываем каждую секунду без задержки
-                timer.schedule(searchQRCodeTimeTask, 0, 1000);
-
+        try {
+            if (this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                mCamera.setDisplayOrientation(90);
             } else {
-                camera.release();
-                camera = null;
-
-                timer.cancel();
+                mCamera.setDisplayOrientation(0);
             }
-        }
-        catch (Throwable e) {
-            Log.e(TAG, e.toString(), e);
+
+            mCamera.setPreviewTexture(surface);
+            mCamera.startPreview();
+        } catch (IOException ioe) {
+            // Something bad happened
         }
     }
 
-    public String decode(Bitmap image) throws NotFoundException {
+    public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+        // Ignored, Camera does all the work for us
+    }
+
+    public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+        mCamera.stopPreview();
+        mCamera.release();
+        return true;
+    }
+
+    public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+        // Invoked every time there's a new Camera preview frame
+
+        Log.d(TAG, "GET FRAME");
+
+        if (mFoundQRcode == false) {
+            Bitmap b = mTextureView.getBitmap();
+
+            String text = decode(b);
+            Log.d(TAG, text != null ? String.format("decode text = '%s'", text) : "text is null");
+
+//                    // Показываем кнопку при удачном разборе qr-кода
+//                    buttonToClipboard.setVisibility(text != null ? View.VISIBLE : View.GONE);
+
+            if (text != null) {
+                mCamera.stopPreview();
+                mFoundQRcode = true;
+            }
+
+            text = text != null ? text : "ERROR: Failed to read the QR code";
+            qrcodeText.setText(text);
+        }
+
+//        ImageView imgView = (ImageView) findViewById(R.id.imageView);
+//        imgView.setImageBitmap(mTextureView.getBitmap());
+    }
+
+    public String decode(Bitmap image) {
+        Log.d(TAG, "decode start");
+
         int width = image.getWidth(), height = image.getHeight();
         int[] pixels = new int[width * height];
         image.getPixels(pixels, 0, width, 0, 0, width, height);
+        Log.d(TAG, "pixels=" + pixels);
 
         RGBLuminanceSource source = new RGBLuminanceSource(width, height, pixels);
         BinaryBitmap bBitmap = new BinaryBitmap(new HybridBinarizer(source));
-        Log.e(TAG, "bBitmap="+bBitmap);
         MultiFormatReader reader = new MultiFormatReader();
-        return reader.decode(bBitmap).getText();
-    }
 
-    public void quit(View view) {
-        timer.cancel();
+        try {
+            String result = reader.decode(bBitmap).getText();
+            Log.d(TAG, "result=" + result);
 
-        System.exit(0);
+            return result;
+
+        } catch (NotFoundException e) {
+            Log.e(TAG, "decode exception", e);
+            return null;
+        } finally {
+            Log.d(TAG, "decode end");
+        }
     }
 }
